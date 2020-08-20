@@ -13,6 +13,7 @@ firebase.initializeApp(firebaseConfig);
 
 var db = firebase.firestore();
 var storage = firebase.storage();
+
 /* 
 Para el registro de usuarios
 */
@@ -22,39 +23,28 @@ var userNameRegistro = document.getElementById('usuario');
 var userMovilRegistro = document.getElementById('celular');
 
 function registrar() {
-  firebase.auth().createUserWithEmailAndPassword(userEmailRegistro.value, userPassRegistro.value)
-    .then((registroUsuario) => {
-
-      db.collection("datosUsuarios").add({
-        Nombre: userNameRegistro.value,
-        Correo: userEmailRegistro.value,
-        Celular: userMovilRegistro.value,
-        uid: registroUsuario.user.uid
-      })
-
-      /* guardarDatosRegistro(user.uid) */
-      /* window.location.href = "../index.html"; */
-      console.log("El usuario se ha registrado");
-      /* limpiarDatosRegistro(); */
-    })
-    .catch(function (error) {
-      console.log("Error: ", error.message);
-    });
+  firebase.auth().createUserWithEmailAndPassword(userEmailRegistro.value, userPassRegistro.value).then(function () {
+    verificar();
+    alert("le enviamos un correo para verificar su cuenta");
+    console.log("se registro user");
+    limpiarDatosRegistro();
+  }).catch(function (error) {
+    var errorCode = error.code;
+    var errorMessage = error.message;
+  });
 }
 
-function guardarDatosRegistro(id) {
-  db.collection("datosUsuarios").add({
-    Nombre: userNameRegistro.value,
-    Correo: userEmailRegistro.value,
-    Celular: userMovilRegistro,
-    uid: id
-  })
-    .then(function (docRef) {
-      console.log("Document written with ID: ", docRef.id);
-    })
-    .catch(function (error) {
-      console.error("Error adding document: ", error);
-    });
+function actualizarDate() {
+  var user = firebase.auth().currentUser;
+
+  user.updateProfile({
+    displayName: userNameRegistro.value,
+    phoneNumber: userMovilRegistro.value,
+  }).then(function () {
+    // Update successful.
+  }).catch(function (error) {
+    // An error happened.
+  });
 }
 
 function limpiarDatosRegistro() {
@@ -70,22 +60,33 @@ var userEmailLogin = document.getElementById('emailLogin');
 var userPassLogin = document.getElementById('contraseñaLogin');
 
 function logearse() {
-  firebase.auth().signInWithEmailAndPassword(userEmailLogin.value, userPassLogin.value).catch(function (error) {
+  firebase.auth().signInWithEmailAndPassword(userEmailLogin.value, userPassLogin.value).then(function () {
+    console.log("se ha logeado");
+    limpiarDatosLogin();
+    window.location.href = "index.html";
+  }).catch(function (error) {
+    console.log(error);
     var errorCode = error.code;
     var errorMessage = error.message;
   });
 }
+
 function limpiarDatosLogin() {
   userEmailLogin.value = "";
   userPassLogin.value = "";
 }
 
 var administrar = document.getElementById('administrar');
+var cerrarsesion = document.getElementById('cerrarsesion');
+
+var email;
 
 function observador() {
   firebase.auth().onAuthStateChanged(function (user) {
     if (user) {
       console.log("usuario activo");
+      administrar.innerHTML = `<a class="nav-link" href="user-index.html">Administrar Cuenta<span class="sr-only">(current)</span></a>`;
+      cerrarsesion.innerHTML = `<button type="button" class="btn btn-outline-primary" onclick="cerrarSesion()">Cerrar Sesion</button>`;
       var displayName = user.displayName;
       var email = user.email;
       var emailVerified = user.emailVerified;
@@ -93,11 +94,63 @@ function observador() {
       var isAnonymous = user.isAnonymous;
       var uid = user.uid;
       var providerData = user.providerData;
+      var phoneNumber = user.phoneNumber;
+      console.log(user);
+
+      localStorage.setItem('user', JSON.stringify(user.email))
+
     } else {
       console.log("usuario inactivo");
-      administrar.innerHTML = '<a class="nav-link" href="login.html">Iniciar Sesion<span class="sr-only">(current)</span></a>';
+      administrar.innerHTML = `<a class="nav-link" href="login.html">Iniciar Sesion<span class="sr-only">(current)</span></a>`;
     }
   });
 }
 
 observador();
+
+function cerrarSesion() {
+  firebase.auth().signOut()
+    .then(function () {
+      console.log("sesion cerrada");
+      window.location.href = "index.html";
+    }).catch(function () {
+
+    });
+}
+
+function verificar() {
+  var user = firebase.auth().currentUser;
+
+  user.sendEmailVerification().then(function () {
+    console.log("correo enviado");
+  }).catch(function (error) {
+    console.log(error);
+  });
+}
+
+/* FIRESTORE */
+var listaUser = document.getElementById('lista');
+
+function leerTodosPedidos(){
+  listaUser.innerHTML = "";
+    db.collection("pedidos")
+        .get()
+        .then(function (querySnapshot) {
+            querySnapshot.forEach(function (doc) {
+              listaUser.innerHTML += `
+                <tr>
+                    <td>${doc.data().Correo}</td>
+                    <td>${doc.data().precio}</td>
+                    <td>@${doc.data().producto}</td>
+                </tr>
+                `;
+            });
+        })
+        .catch(function (error) {
+            console.log("Error : ", error);
+        });
+}
+
+
+
+
