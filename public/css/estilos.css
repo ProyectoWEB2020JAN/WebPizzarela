@@ -490,9 +490,52 @@ margin-top: 50px;
 .Content{
   margin-top: 200px;
   padding: 50px;
+  
+
 }
 
 .Content > h1{
   color: #ff851b;
   text-align: center;
+}
+
+.container-misvis {
+  background-color: #ebdc87;
+  color: #000000;
+  text-align: center;
+  margin-top: 100px;
+  padding: 50px 30px;
+  min-height: 1065px;
+}
+
+.Imagen{
+  width: 300px;
+
+}
+
+.row {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+  justify-content: center;
+  
+}
+
+.imagenMision{
+  width: 100%;
+}
+
+.ColorRadio{
+  color: #000000;
+}
+
+.colorreseña{
+  color: #000000;
+}
+
+.Contectsection{
+  padding: 0;
 }
