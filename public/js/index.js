@@ -16,55 +16,88 @@ var storage = firebase.storage();
 /* 
 Para el registro de usuarios
 */
-var userNameRegistro = document.getElementById('usuario')
-var userPassRegistro = document.getElementById('contraseña')
-var userEmailRegistro = document.getElementById('correo')
-var userMovilRegistro = document.getElementById('celular')
+var userPassRegistro = document.getElementById('contraseña');
+var userEmailRegistro = document.getElementById('correo');
+var userNameRegistro = document.getElementById('usuario');
+var userMovilRegistro = document.getElementById('celular');
 
-function registrarUsuario() {
-  db.collection("usuarios").add({
-    usuario: userNameRegistro.value,
-    contraseña: userPassRegistro.value,
-    correo: userEmailRegistro.value,
-    celular: userMovilRegistro.value,
-    rol: 2
+function registrar() {
+  firebase.auth().createUserWithEmailAndPassword(userEmailRegistro.value, userPassRegistro.value)
+    .then((registroUsuario) => {
 
-  })
-    .then((docRef) => {
-      limpiarDatos() 
-      console.log("Document written with ID: ", docRef.id);
-      alert("REGISTRO EXITOSO BIENVENIDO A LA FAMILIA", docRef.Usuario)
+      db.collection("datosUsuarios").add({
+        Nombre: userNameRegistro.value,
+        Correo: userEmailRegistro.value,
+        Celular: userMovilRegistro.value,
+        uid: registroUsuario.user.uid
+      })
+
+      /* guardarDatosRegistro(user.uid) */
+      /* window.location.href = "../index.html"; */
+      console.log("El usuario se ha registrado");
+      /* limpiarDatosRegistro(); */
     })
-    .catch((error) => {
-      console.error("Error adding document: ", error);
-      alert("Error en al Registrar", error)
+    .catch(function (error) {
+      console.log("Error: ", error.message);
     });
 }
 
-function limpiarDatos() {
+function guardarDatosRegistro(id) {
+  db.collection("datosUsuarios").add({
+    Nombre: userNameRegistro.value,
+    Correo: userEmailRegistro.value,
+    Celular: userMovilRegistro,
+    uid: id
+  })
+    .then(function (docRef) {
+      console.log("Document written with ID: ", docRef.id);
+    })
+    .catch(function (error) {
+      console.error("Error adding document: ", error);
+    });
+}
+
+function limpiarDatosRegistro() {
   userNameRegistro.value = "";
   userPassRegistro.value = "";
   userEmailRegistro.value = "";
   userMovilRegistro.value = "";
 }
 
-function leerDatos() {
-  listaUser.innerHTML = "";
-  db.collection("usuarios")
-      .get()
-      .then(function (querySnapshot) {
-          querySnapshot.forEach(function (doc) {
-              listaUser.innerHTML += `
-              <tr>
-                  <td>${doc.data().usuario}</td>
-                  <td>${doc.data().celular}</td>
-                  <td>@${doc.data().correo}</td>
-              </tr>
-              `;
-          });
-      })
-      .catch(function (error) {
-          console.log("Error : ", error);
-      });
+/* para login de usuarios */
+
+var userEmailLogin = document.getElementById('emailLogin');
+var userPassLogin = document.getElementById('contraseñaLogin');
+
+function logearse() {
+  firebase.auth().signInWithEmailAndPassword(userEmailLogin.value, userPassLogin.value).catch(function (error) {
+    var errorCode = error.code;
+    var errorMessage = error.message;
+  });
+}
+function limpiarDatosLogin() {
+  userEmailLogin.value = "";
+  userPassLogin.value = "";
 }
 
+var administrar = document.getElementById('administrar');
+
+function observador() {
+  firebase.auth().onAuthStateChanged(function (user) {
+    if (user) {
+      console.log("usuario activo");
+      var displayName = user.displayName;
+      var email = user.email;
+      var emailVerified = user.emailVerified;
+      var photoURL = user.photoURL;
+      var isAnonymous = user.isAnonymous;
+      var uid = user.uid;
+      var providerData = user.providerData;
+    } else {
+      console.log("usuario inactivo");
+      administrar.innerHTML = '<a class="nav-link" href="login.html">Iniciar Sesion<span class="sr-only">(current)</span></a>';
+    }
+  });
+}
+
+observador();

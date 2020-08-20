@@ -145,5 +145,4 @@ function cargarEvento() {
     document.addEventListener('DOMContentLoaded', carro.leerLocalStorage());
     document.addEventListener('DOMContentLoaded', carro.leerLocalStorageCompra());
     carro.calcularTotal();
-
 }
